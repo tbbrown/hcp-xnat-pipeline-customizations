@@ -22,6 +22,10 @@
 			<pip:name>l</pip:name>
 			<pip:description>Local file</pip:description>
 		</pip:argument>
+                <pip:argument id="output">
+                        <pip:name>o</pip:name>
+                        <pip:description>Local output file</pip:description>
+                </pip:argument>
 		<pip:argument id="method">
 			<pip:name>m</pip:name>
 			<pip:description>Method</pip:description>
