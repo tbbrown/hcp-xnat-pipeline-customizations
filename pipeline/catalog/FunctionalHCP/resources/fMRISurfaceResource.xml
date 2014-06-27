@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pip:Resource xmlns:pip="http://nrg.wustl.edu/pipeline">
+<!--	<prov:version>0.1</prov:version>
+-->	<pip:name>GenericfMRISurfaceProcessingPipeline.sh</pip:name>
+	<pip:location>$HCPPIPEDIR/fMRISurface</pip:location>
+
+  <pip:type>Executable</pip:type>
+  <pip:commandPrefix>source $SCRIPTS_HOME/SetUpHCPPipeline.sh; </pip:commandPrefix>
+
+  <pip:input>
+    <!---path=/home/NRG/jwilso01/nifti  
+    -subject=792564 
+    -fmriname=tfMRI_EMOTION_LR 
+    -lowresmesh=32  
+    -fmrires=2  
+    -smoothingFWHM=2  
+    -grayordinatesres=2-->
+    
+    <pip:argument id="path" nospace="true" prefix="-">
+      <pip:name>-path=</pip:name>
+    </pip:argument>
+    <pip:argument id="subject" nospace="true" prefix="-">
+      <pip:name>-subject=</pip:name>
+    </pip:argument>
+    <pip:argument id="fmriname" nospace="true" prefix="-">
+      <pip:name>-fmriname=</pip:name>
+    </pip:argument>
+    <pip:argument id="lowresmesh" nospace="true" prefix="-">
+      <pip:name>-lowresmesh=</pip:name>
+    </pip:argument>
+    <pip:argument id="fmrires" nospace="true" prefix="-">
+      <pip:name>-fmrires=</pip:name>
+    </pip:argument>
+    <pip:argument id="smoothingFWHM" nospace="true" prefix="-">
+      <pip:name>-smoothingFWHM=</pip:name>
+    </pip:argument>
+    <pip:argument id="grayordinatesres" nospace="true" prefix="-">
+      <pip:name>-grayordinatesres=</pip:name>
+    </pip:argument>
+    
+  </pip:input>
+
+</pip:Resource>
+
+	
+
+
