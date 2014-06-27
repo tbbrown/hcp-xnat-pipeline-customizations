@@ -97,14 +97,35 @@ source $taskfMRI_paramsFile
 #
 ###########################################################
 
-isSet taskfMRI_lowresmesh
-isSet taskfMRI_origsmoothingFWHM
-isSet taskfMRI_finalsmoothingFWHM
-isSet taskfMRI_grayordinates
 isSet taskfMRI_functroot[0]
-isSet taskfMRI_confound
-isSet taskfMRI_vba
 
+isSet taskfMRI_lowresmesh1
+isSet taskfMRI_origsmoothingFWHM1
+isSet taskfMRI_finalsmoothingFWHM1
+isSet taskfMRI_grayordinates1
+isSet taskfMRI_confound1
+isSet taskfMRI_vba1
+
+isSet taskfMRI_lowresmesh2
+isSet taskfMRI_origsmoothingFWHM2
+isSet taskfMRI_finalsmoothingFWHM2
+isSet taskfMRI_grayordinates2
+isSet taskfMRI_confound2
+isSet taskfMRI_vba2
+
+isSet taskfMRI_lowresmesh3
+isSet taskfMRI_origsmoothingFWHM3
+isSet taskfMRI_finalsmoothingFWHM3
+isSet taskfMRI_grayordinates3
+isSet taskfMRI_confound3
+isSet taskfMRI_vba3
+
+isSet taskfMRI_lowresmesh4
+isSet taskfMRI_origsmoothingFWHM4
+isSet taskfMRI_finalsmoothingFWHM4
+isSet taskfMRI_grayordinates4
+isSet taskfMRI_confound4
+isSet taskfMRI_vba4
 
 ###########################################################
 # Continue - looks good
@@ -150,7 +171,7 @@ do
 		exit 1
 	fi 
 
-	commandStr="$PIPELINE_HOME/bin/XnatPipelineLauncher -pipeline TaskfMRIHCP/TaskfMRIHCP.xml -project $project -id $xnat_id -dataType $dataType -host $xnat_host -parameter xnatserver=$xnatserver -parameter project=$project -parameter xnat_id=$xnat_id -label $label -u $user -pwd $passwd -supressNotification -notify $useremail -notify $adminemail -parameter adminemail=$adminemail -parameter useremail=$useremail -parameter mailhost=$mailhost -parameter userfullname=$userfullname -parameter builddir=$builddir -parameter sessionid=$sessionId -parameter subjects=$subject -parameter functroot=$tscan -parameter lowresmesh=$taskfMRI_lowresmesh -parameter grayordinates=$taskfMRI_grayordinates -parameter origsmoothingFWHM=$taskfMRI_origsmoothingFWHM -parameter finalsmoothingFWHM=$taskfMRI_finalsmoothingFWHM -parameter temporalfilter=$taskfMRI_temporalfilter -parameter confound=$taskfMRI_confound -parameter vba=$taskfMRI_vba -parameter templatesdir=$templatesdir  -parameter configdir=$configdir -parameter CaretAtlasDir=$CaretAtlasDir -parameter compute_cluster=$compute_cluster -parameter packaging_outdir=$packaging_outdir -parameter cluster_builddir_prefix=$cluster_builddir_prefix -parameter db_builddir_prefix=$db_builddir_prefix  -workFlowPrimaryKey $workflowID  "
+	commandStr="$PIPELINE_HOME/bin/XnatPipelineLauncher -pipeline TaskfMRIHCP/TaskfMRIHCP.xml -project $project -id $xnat_id -dataType $dataType -host $xnat_host -parameter xnatserver=$xnatserver -parameter project=$project -parameter xnat_id=$xnat_id -label $label -u $user -pwd $passwd -supressNotification -notify $useremail -notify $adminemail -parameter adminemail=$adminemail -parameter useremail=$useremail -parameter mailhost=$mailhost -parameter userfullname=$userfullname -parameter builddir=$builddir -parameter sessionid=$sessionId -parameter subjects=$subject -parameter functroot=$tscan -parameter lowresmesh1=$taskfMRI_lowresmesh1 -parameter grayordinates1=$taskfMRI_grayordinates1 -parameter origsmoothingFWHM1=$taskfMRI_origsmoothingFWHM1 -parameter finalsmoothingFWHM1=$taskfMRI_finalsmoothingFWHM1 -parameter temporalfilter1=$taskfMRI_temporalfilter1 -parameter confound1=$taskfMRI_confound1 -parameter vba1=$taskfMRI_vba1 -parameter lowresmesh2=$taskfMRI_lowresmesh2 -parameter grayordinates2=$taskfMRI_grayordinates2 -parameter origsmoothingFWHM2=$taskfMRI_origsmoothingFWHM2 -parameter finalsmoothingFWHM2=$taskfMRI_finalsmoothingFWHM2 -parameter temporalfilter2=$taskfMRI_temporalfilter2 -parameter confound2=$taskfMRI_confound2 -parameter vba2=$taskfMRI_vba2 -parameter lowresmesh3=$taskfMRI_lowresmesh3 -parameter grayordinates3=$taskfMRI_grayordinates3 -parameter origsmoothingFWHM3=$taskfMRI_origsmoothingFWHM3 -parameter finalsmoothingFWHM3=$taskfMRI_finalsmoothingFWHM3 -parameter temporalfilter3=$taskfMRI_temporalfilter3 -parameter confound3=$taskfMRI_confound3 -parameter vba3=$taskfMRI_vba3 -parameter lowresmesh4=$taskfMRI_lowresmesh4 -parameter grayordinates4=$taskfMRI_grayordinates4 -parameter origsmoothingFWHM4=$taskfMRI_origsmoothingFWHM4 -parameter finalsmoothingFWHM4=$taskfMRI_finalsmoothingFWHM4 -parameter temporalfilter4=$taskfMRI_temporalfilter4 -parameter confound4=$taskfMRI_confound4 -parameter vba4=$taskfMRI_vba4 -parameter templatesdir=$templatesdir -parameter configdir=$configdir -parameter CaretAtlasDir=$CaretAtlasDir -parameter compute_cluster=$compute_cluster -parameter packaging_outdir=$packaging_outdir -parameter cluster_builddir_prefix=$cluster_builddir_prefix -parameter db_builddir_prefix=$db_builddir_prefix  -workFlowPrimaryKey $workflowID  "
 
 	echo "Creating $outFile" 
 
