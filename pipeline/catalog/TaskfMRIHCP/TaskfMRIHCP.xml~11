@@ -1,0 +1,865 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Pipeline xmlns="http://nrg.wustl.edu/pipeline" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://nrg.wustl.edu/pipeline ..\..\schema\pipeline.xsd" xmlns:fileUtils="http://www.xnat.org/java/org.nrg.imagingtools.utils.FileUtils">
+  <name>TaskfMRIHCP</name>
+  <!--Should be  Name of the pipeline XML file -->
+  <location>TaskfMRIHCP</location>
+  <!-- Filesystem path to the pipeline XML -->
+  <description>Level one and level two task fMRI Analysis...</description>
+  <resourceRequirements>
+    <!-- NOTE:  Queues defined in /nrgpackages/sge_root/nrg/common/qtask.  Dev machines have overlay at /opt/sge_common/[DEV_MACH_NAME]/qtask which is mounted as a bind  -->
+    <property name="DRMAA_JobTemplate_JobCategory">hcp_standard_q</property>
+  </resourceRequirements>
+
+  <documentation>
+    <version>0.0.1</version>
+    <input-parameters>
+
+      <!--GLOBAL-->
+      <parameter>
+        <name>xnat_id</name>
+        <values>
+          <schemalink>xnat:mrSessionData/ID</schemalink>
+        </values>
+        <description>The xnat id of the scan session</description>
+      </parameter>
+      <parameter>
+        <name>sessionid</name>
+        <values>
+          <schemalink>xnat:mrSessionData/label</schemalink>
+        </values>
+        <description>The scan ids of all the scans of the session</description>
+      </parameter>
+      <parameter>
+        <name>project</name>
+        <values>
+          <schemalink>xnat:mrSessionData/project</schemalink>
+        </values>
+        <description>Project</description>
+      </parameter>
+      <parameter>
+        <name>subjects</name>
+        <values>
+          <schemalink>xnat:mrSessionData/subject_ID</schemalink>
+        </values>
+        <description>Subject ID</description>
+      </parameter>
+      <!--END GLOBAL-->
+
+      <parameter>
+        <name>functroot</name>
+        <values>
+          <csv>tfMRI</csv>
+        </values>
+        <description>Jus the root of the funct series with PE</description>
+      </parameter>
+
+      <parameter>
+        <name>lowresmesh</name>
+        <values>
+          <csv>32</csv>
+        </values>
+        <description>Low resolution mesh</description>
+      </parameter>
+
+      <parameter>
+        <name>grayordinates</name>
+        <values>
+          <csv>2</csv>
+        </values>
+        <description>Grey Ordinates</description>
+      </parameter>
+
+      <parameter>
+        <name>origsmoothingFWHM</name>
+        <values>
+          <csv>2</csv>
+        </values>
+        <description>Original smoothing full width half max</description>
+      </parameter>
+
+      <parameter>
+        <name>finalsmoothingFWHM</name>
+        <values>
+          <csv>4</csv>
+        </values>
+        <description>Original smoothing full width half max</description>
+      </parameter>
+
+      <parameter>
+        <name>temporalfilter</name>
+        <values>
+          <csv>200</csv>
+        </values>
+        <description>Temporal filter</description>
+      </parameter>
+
+      <parameter>
+        <name>confound</name>
+        <values>
+          <csv>NONE</csv>
+        </values>
+        <description>Confounding</description>
+      </parameter>
+
+      <parameter>
+        <name>vba</name>
+        <values>
+          <csv>YES</csv>
+        </values>
+        <description>Volume based processing</description>
+      </parameter>
+
+      <!--<parameter>
+        <name>templatesdir</name>
+        <values>
+          <csv>/nrgpackages/atlas/HCP/</csv>
+        </values>
+        <description>Main atlas location</description>
+      </parameter>
+
+      <parameter>
+        <name>configdir</name>
+        <values>
+          <csv>/nrgpackages/tools/HCP/conf/</csv>
+        </values>
+        <description>Main atlas location</description>
+      </parameter>
+
+      <parameter>
+        <name>CaretAtlasDir</name>
+        <values>
+          <csv>/nrgpackages/atlas/HCP/standard_mesh_atlases/</csv>
+        </values>
+        <description>Surface atlas location</description>
+      </parameter>-->
+
+    </input-parameters>
+  </documentation>
+  <xnatInfo appliesTo="xnat:mrSessionData"/>
+  <outputFileNamePrefix>^concat(/Pipeline/parameters/parameter[name='logdir']/values/unique/text(),'/TaskfMRIHCP')^</outputFileNamePrefix>
+
+  <!-- Description of the Pipeline -->
+  <parameters>
+      <parameter>
+      <name>task_builddir</name>
+      <values>
+        <unique>^concat(/Pipeline/parameters/parameter[name='builddir']/values/unique/text(), '/TaskfMRIAnalysis/',/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '/')^</unique>
+      </values>
+    </parameter>  
+      <parameter>
+      <name>workdir</name>
+      <values>
+        <unique>^concat(/Pipeline/parameters/parameter[name='task_builddir']/values/unique/text(), 'DATA/')^</unique>
+      </values>
+    </parameter>
+      <parameter>
+      <name>subjectdir</name>
+      <values>
+        <unique>^concat(/Pipeline/parameters/parameter[name='workdir']/values/unique/text(), /Pipeline/parameters/parameter[name='subjects']/values/unique/text(),'/')^</unique>
+      </values>
+    </parameter>
+    <parameter>
+      <name>logdir</name>
+      <values>
+        <unique>^concat(/Pipeline/parameters/parameter[name='task_builddir']/values/unique/text(), 'logs')^</unique>
+      </values>
+    </parameter>
+   <parameter>
+      <name>db_workdir</name>
+      <values>
+        <unique>^concat(replace(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(),/Pipeline/parameters/parameter[name='cluster_builddir_prefix']/values/unique/text(),/Pipeline/parameters/parameter[name='db_builddir_prefix']/values/unique/text()), '/')^</unique>
+      </values>
+    </parameter>    
+    <parameter>
+      <name>xnat_host</name>
+      <values>
+        <unique>^if (count(/Pipeline/parameters/parameter[name='alias_host']/values/unique/text())>0) then /Pipeline/parameters/parameter[name='alias_host']/values/unique/text() else /Pipeline/parameters/parameter[name='host']/values/unique/text()^</unique>
+      </values>
+    </parameter>    
+    <parameter>
+      <name>xnat_host_root1</name>
+      <values>
+        <unique>^replace(/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text(),'http://','')^</unique>
+      </values>
+    </parameter>        
+   <parameter>
+      <name>xnat_host_root2</name>
+      <values>
+        <unique>^replace(/Pipeline/parameters/parameter[name='xnat_host_root1']/values/unique/text(),':8080/','')^</unique>
+      </values>
+    </parameter>        
+   <parameter>
+      <name>xnat_host_root3</name>
+      <values>
+        <unique>^replace(/Pipeline/parameters/parameter[name='xnat_host_root2']/values/unique/text(),'https://','')^</unique>
+      </values>
+    </parameter>            
+   <parameter>
+      <name>xnat_host_root</name>
+      <values>
+        <unique>^replace(/Pipeline/parameters/parameter[name='xnat_host_root3']/values/unique/text(),'/','')^</unique>
+      </values>
+    </parameter>           
+
+  </parameters>
+
+  <!--///STEPS///-->
+  <steps>
+    <step id="0" description="Create FSF files" >
+	  <resource name="mkdir" location="commandlineTools">
+	    <argument id="p">
+	    </argument>
+	    <argument id="dirname">
+	      <value>^/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text()^</value>
+	    </argument>
+	  </resource>
+      <resource name="CallFSFResource" location="ToolsHCP/resources">
+        <argument id="username">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="host">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host_root']/values/unique/text()^</value>
+        </argument>
+         <argument id="builddir">
+          <value>^/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text()^</value>
+        </argument>
+        <argument id="project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+         <argument id="series">
+          <value>^/Pipeline/parameters/parameter[name='functroot']/values/unique/text()^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <step id="0a" description="Create destination directory for RL files">
+      <resource name="mkdir" location="commandlineTools">
+        <argument id="p">
+        </argument>
+        <argument id="dirname">
+          <value>^concat('"',
+                         /Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(),
+                         'MNINonLinear/Results/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL'
+                         '"')^
+          </value>
+        </argument>
+      </resource>
+    </step>
+
+    <step id="0b" description="Get _RL.nii.gz file">
+      <resource name="XnatDataClient" location="xnat_tools">
+        <argument id="user">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+
+        <argument id="method">
+          <value>GET</value>
+        </argument>
+
+        <argument id="remote">
+          <value>^concat('"',
+                         /Pipeline/parameters/parameter[name='xnat_host']/values/unique/text(),
+                         'REST/projects/',/Pipeline/parameters/parameter[name='project']/values/unique/text(),
+                         '/subjects/',    /Pipeline/parameters/parameter[name='subjects']/values/unique/text(),
+                         '/experiments/', /Pipeline/parameters/parameter[name='xnat_id']/values/unique/text(),
+                         '/resources/',   /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL_preproc/MNINonLinear/Results/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL.nii.gz',
+                         '"')^
+          </value>
+        </argument>
+
+        <argument id="local">
+          <value>^concat('"', 
+                         /Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 
+                         'MNINonLinear/Results/', 
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), 
+                         '_RL/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL.nii.gz',
+                         '"')^
+          </value>
+        </argument>
+      </resource>
+    </step>
+
+    <step id="0c" description="Get _RL_Atlas.dtseries.nii file">
+      <resource name="XnatDataClient" location="xnat_tools">
+        <argument id="user">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+
+        <argument id="method">
+          <value>GET</value>
+        </argument>
+
+        <argument id="remote">
+          <value>^concat('"',
+                         /Pipeline/parameters/parameter[name='xnat_host']/values/unique/text(),
+                         'REST/projects/',/Pipeline/parameters/parameter[name='project']/values/unique/text(),
+                         '/subjects/',    /Pipeline/parameter/parameter[name='subjects']/values/unique/text(),
+                         '/experiments/', /Pipeline/parameters/parameter[name='xnat_id']/values/unique/text(),
+                         '/resources/',   /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL_preproc/MNINonLinear/Results/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL_Atlas.dtseries.nii',
+                         '"')^
+          </value>
+        </argument>
+
+        <argument id="local">
+          <value>^concat('"', 
+                         /Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 
+                         'MNINonLinear/Results/', 
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), 
+                         '_RL',
+                         '"')^
+          </value>
+        </argument>
+      </resource>
+    </step>
+
+    <step id="0d" description="Get _RL_SBRef.nii.gz file">
+      <resource name="XnatDataClient" location="xnat_tools">
+        <argument id="user">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+
+        <argument id="method">
+          <value>GET</value>
+        </argument>
+
+        <argument id="remote">
+          <value>^concat('"',
+                         /Pipeline/parameters/parameter[name='xnat_host']/values/unique/text(),
+                         'REST/projects/',/Pipeline/parameters/parameter[name='project']/values/unique/text(),
+                         '/subjects/',    /Pipeline/parameter/parameter[name='subjects']/values/unique/text(),
+                         '/experiments/', /Pipeline/parameters/parameter[name='xnat_id']/values/unique/text(),
+                         '/resources/',   /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL_preproc/MNINonLinear/Results/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL/',
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(),
+                         '_RL_SBRef.nii.gz',
+                         '"')^
+          </value>
+        </argument>
+
+        <argument id="local">
+          <value>^concat('"', 
+                         /Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 
+                         'MNINonLinear/Results/', 
+                         /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), 
+                         '_RL',
+                         '"')^
+          </value>
+        </argument>
+      </resource>
+    </step>
+
+
+    <!-- LR DATA: -->
+    <step id="1" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>^concat(/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR_preproc')^</value>
+        </argument>
+        <argument id="Files">
+          <value>^concat('MNINonLinear/Results/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR.nii.gz,MNINonLinear/Results/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR_Atlas.dtseries.nii,MNINonLinear/Results/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR_SBRef.nii.gz')^</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/Results/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR')^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!--ROIs-->
+    <!-- -Project HCP_Q2 -Subject 792564 -Session 792564_3T -Resource Structural_preproc -OutputDir /home/NRG/jwilso01/tmp/792564/MNINonLinear/ROIs  -Files Structural_preproc/MNINonLinear/ROIs/Atlas_ROIs.2.nii.gz-->
+    <step id="2" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>Structural_preproc</value>
+        </argument>
+        <argument id="Files">
+          <value>MNINonLinear/ROIs/Atlas_ROIs.2.nii.gz</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/ROIs')^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!--fsaverage_LR32k-->
+    <!-- -Project HCP_Q2 -Subject 792564 -Session 792564_3T -Resource Structural_preproc -OutputDir /home/NRG/jwilso01/tmp/792564/MNINonLinear/fsaverage_LR32k -Files fsaverage_LR32k/792564.L.atlasroi.32k_fs_LR.shape.gii,fsaverage_LR32k/792564.L.midthickness.32k_fs_LR.surf.gii,fsaverage_LR32k/792564.R.atlasroi.32k_fs_LR.shape.gii,fsaverage_LR32k/792564.R.midthickness.32k_fs_LR.surf.gii-->
+    <step id="3" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>Structural_preproc</value>
+        </argument>
+        <argument id="Files">
+          <value>^concat('MNINonLinear/fsaverage_LR32k/', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(), '.L.atlasroi.32k_fs_LR.shape.gii,MNINonLinear/fsaverage_LR32k/', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(), '.L.midthickness.32k_fs_LR.surf.gii,MNINonLinear/fsaverage_LR32k/', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(), '.R.atlasroi.32k_fs_LR.shape.gii,MNINonLinear/fsaverage_LR32k/', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(), '.R.midthickness.32k_fs_LR.surf.gii')^</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/fsaverage_LR32k')^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!--RL EVs-->
+    <!-- Resource tfMRI_EMOTION_RL_preproc -OutputDir /home/NRG/jwilso01/tmp/792564/MNINonLinear/Results/tfMRI_EMOTION_RL/EVs  -ResourcePath MNINonLinear/Results/tfMRI_EMOTION_RL/EVs/-->
+    <step id="4" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>^concat(/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL_unproc')^</value>
+        </argument>
+        <argument id="ResourcePath">
+          <value>LINKED_DATA/EPRIME/EVs/</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/Results/',  /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL/EVs/' )^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!--LR EVs-->
+    <step id="5" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>^concat(/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR_unproc')^</value>
+        </argument>
+        <argument id="ResourcePath">
+          <value>LINKED_DATA/EPRIME/EVs/</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/Results/',  /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR/EVs/' )^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <step id="6" description="Create a Results data directory" workdirectory="^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), '/MNINonLinear/Results')^">
+      <resource name="mkdir" location="commandlineTools">
+        <argument id="p">
+        </argument>
+        <argument id="dirname">
+          <value>^/Pipeline/parameters/parameter[name='functroot']/values/unique/text()^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!--move/generate FSFs-->
+
+    <!--RL FSFs-->
+    <step id="7" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>^concat(/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL_preproc')^</value>
+        </argument>
+        <argument id="Files">
+          <value>^concat('MNINonLinear/Results/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL_hp200_s4_level1.fsf')^</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/Results/',  /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL/' )^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!--LR FSFs-->
+    <step id="8" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>^concat(/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR_preproc')^</value>
+        </argument>
+        <argument id="Files">
+          <value>^concat('MNINonLinear/Results/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR_hp200_s4_level1.fsf')^</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/Results/',  /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR/' )^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!--Level 2 FSFs-->
+    <step id="9" description="Run getHCPResources and save results" >
+      <resource name="getHCPResources" location="ToolsHCP/resources">
+        <argument id="Server">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text()^</value>
+        </argument>
+        <argument id="User">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="Password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="Subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <argument id="Project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="Session">
+          <value>^/Pipeline/parameters/parameter[name='sessionid']/values/unique/text()^</value>
+        </argument>
+        <argument id="Resource">
+          <value>^/Pipeline/parameters/parameter[name='functroot']/values/unique/text()^</value>
+        </argument>
+        <argument id="Files">
+          <value>^concat('MNINonLinear/Results/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_hp200_s4_level2.fsf')^</value>
+        </argument>
+        <argument id="DestinationDir">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/Results/',  /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '/' )^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <!-- path=/home/NRG/jwilso01/nifti -subject=792564 -lvl1tasks=tfMRI_EMOTION_RL@tfMRI_EMOTION_LR -lvl1fsfs=tfMRI_EMOTION_RL@tfMRI_EMOTION_LR -lvl2task=tfMRI_EMOTION -lvl2fsf=tfMRI_EMOTION -lowresmesh=32 -grayordinatesres=2 -origsmoothingFWHM=2 -finalsmoothingFWHM=4  -confound=NONE -temporalfilter=200 -vba=YES-->
+
+
+    <step id="10a" description="Run TaskfMRIAnalysis 1">
+      <resource name="TaskfMRIAnalysisResource" location="TaskfMRIHCP/resources">
+
+        <argument id="path">
+          <value>^/Pipeline/parameters/parameter[name='workdir']/values/unique/text()^</value>
+        </argument>
+        <argument id="subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+        <!--cat the two strings for level 1 and 2 here...-->
+        <argument id="lvl1tasks">
+          <value>^concat(/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL@', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR')^</value>
+        </argument>
+        <argument id="lvl1fsfs">
+          <value>^concat(/Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_RL@', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '_LR')^</value>
+        </argument>
+        <argument id="lvl2task">
+          <value>^/Pipeline/parameters/parameter[name='functroot']/values/unique/text()^</value>
+        </argument>
+        <argument id="lvl2fsf">
+          <value>^/Pipeline/parameters/parameter[name='functroot']/values/unique/text()^</value>
+        </argument>
+        <!--parms...-->
+        <argument id="lowresmesh">
+          <value>^/Pipeline/parameters/parameter[name='lowresmesh1']/values/unique/text()^</value>
+        </argument>
+        <argument id="grayordinatesres">
+          <value>^/Pipeline/parameters/parameter[name='grayordinates1']/values/unique/text()^</value>
+        </argument>
+        <argument id="origsmoothingFWHM">
+          <value>^/Pipeline/parameters/parameter[name='origsmoothingFWHM1']/values/unique/text()^</value>
+        </argument>
+        <argument id="finalsmoothingFWHM">
+          <value>^/Pipeline/parameters/parameter[name='finalsmoothingFWHM1']/values/unique/text()^</value>
+        </argument>
+        <argument id="confound">
+          <value>^/Pipeline/parameters/parameter[name='confound1']/values/unique/text()^</value>
+        </argument>
+        <argument id="temporalfilter">
+          <value>^/Pipeline/parameters/parameter[name='temporalfilter1']/values/unique/text()^</value>
+        </argument>
+        <argument id="vba">
+          <value>^/Pipeline/parameters/parameter[name='vba1']/values/unique/text()^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <step id="11" description="Remove the zip">
+      <resource name="rm" location="commandlineTools">
+        <argument id="file">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/fsaverage_LR32k/')^</value>
+        </argument>
+        <argument id="r" />
+      </resource>
+    </step>
+
+    <step id="12"  description="Remove extra">
+      <resource name="rm" location="commandlineTools">
+        <argument id="file">
+          <value>^concat(/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text(), 'MNINonLinear/ROIs/')^</value>
+        </argument>
+        <argument id="r" />
+      </resource>
+    </step>
+
+    <step id="13" description="Copy Log files" awaitApprovalToProceed="true" workdirectory="^/Pipeline/parameters/parameter[name='logdir']/values/unique/text()^">
+      <resource name="cp" location="commandlineTools">
+        <argument id="source">
+          <value>^concat(/Pipeline/name/text(), '*.err')^</value>
+        </argument>
+        <argument id="destination">
+          <value>^/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text()^</value>
+        </argument>
+      </resource>
+      <resource name="cp" location="commandlineTools">
+        <argument id="source">
+          <value>^concat(/Pipeline/name/text(), '*.log')^</value>
+        </argument>
+        <argument id="destination">
+          <value>^/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text()^</value>
+        </argument>
+      </resource>
+      <resource name="cp" location="commandlineTools">
+        <argument id="source">
+          <value>^concat(/Pipeline/name/text(), '_Provenance.xml')^</value>
+        </argument>
+        <argument id="destination">
+          <value>^/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text()^</value>
+        </argument>
+      </resource>
+    </step>
+
+   <step id="14" description="Delete previous output files" workdirectory="^/Pipeline/parameters/parameter[name='subjectdir']/values/unique/text()^">
+      <resource name="XnatRestClient" location="xnat_tools">
+        <argument id="user">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="host">
+          <value>^/Pipeline/parameters/parameter[name='host']/values/unique/text()^</value>
+        </argument>
+        <argument id="method">
+          <value>DELETE</value>
+        </argument>
+        <argument id="remote">
+          <value>^concat('"/REST/projects/', /Pipeline/parameters/parameter[name='project']/values/unique/text(), '/subjects/', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(), '/experiments/', /Pipeline/parameters/parameter[name='xnat_id']/values/unique/text(), '/resources/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '"')^</value>
+        </argument>
+      </resource>
+    </step>
+
+    <step id="15" description="Upload output files to XNAT" workdirectory="^/Pipeline/parameters/parameter[name='workdir']/values/unique/text()^">
+      <resource name="XnatDataClient" location="xnat_tools">
+        <argument id="user">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="method">
+          <value>PUT</value>
+        </argument>
+        <argument id="remote">
+          <value>^concat('"',/Pipeline/parameters/parameter[name='xnat_host']/values/unique/text(),'REST/projects/', /Pipeline/parameters/parameter[name='project']/values/unique/text(), '/subjects/', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(), '/experiments/', /Pipeline/parameters/parameter[name='xnat_id']/values/unique/text(), '/resources/', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), '/files?extract=true&amp;overwrite=true&amp;reference=',/Pipeline/parameters/parameter[name='db_workdir']/values/unique/text(),'"')^</value>
+        </argument>
+      </resource>
+    </step>
+    <step id="16" description="Create Package" workdirectory="^/Pipeline/parameters/parameter[name='workdir']/values/unique/text()^">
+      <resource name="CallPackagerResource" location="ToolsHCP/resources">
+        <argument id="username">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="host">
+          <value>^/Pipeline/parameters/parameter[name='xnat_host_root']/values/unique/text()^</value>
+        </argument>
+        <argument id="outdir">
+          <value>^/Pipeline/parameters/parameter[name='packaging_outdir']/values/unique/text()^</value>
+        </argument>
+        <argument id="builddir">
+          <value>^/Pipeline/parameters/parameter[name='workdir']/values/unique/text()^</value>
+        </argument>
+        <argument id="project">
+          <value>^/Pipeline/parameters/parameter[name='project']/values/unique/text()^</value>
+        </argument>
+        <argument id="subject">
+          <value>^/Pipeline/parameters/parameter[name='subjects']/values/unique/text()^</value>
+        </argument>
+         <argument id="outputFormat">
+          <value>PACKAGE</value>
+        </argument>
+        <argument id="outputType">
+          <value>ANALYSIS</value>
+        </argument>
+        <argument id="packet">
+          <value>FUNCTIONAL</value>
+        </argument>
+        <argument id="series">
+          <value>^/Pipeline/parameters/parameter[name='functroot']/values/unique/text()^</value>
+        </argument>
+      </resource>
+    </step>    
+    <step id="END-Notify" description="Notify">
+      <resource name="Notifier" location="notifications">
+        <argument id="user">
+          <value>^/Pipeline/parameters/parameter[name='user']/values/unique/text()^</value>
+        </argument>
+        <argument id="password">
+          <value>^/Pipeline/parameters/parameter[name='pwd']/values/unique/text()^</value>
+        </argument>
+        <argument id="to">
+          <value>^/Pipeline/parameters/parameter[name='useremail']/values/unique/text()^</value>
+        </argument>
+        <argument id="cc">
+          <value>^/Pipeline/parameters/parameter[name='adminemail']/values/unique/text()^</value>
+        </argument>
+        <argument id="from">
+          <value>^/Pipeline/parameters/parameter[name='adminemail']/values/unique/text()^</value>
+        </argument>
+        <argument id="subject">
+          <value>^concat(/Pipeline/parameters/parameter[name='xnatserver']/values/unique/text(), ' Task fMRI HCP Preprocessing Pipeline Completed: NIFTI and data files generated for ', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(), ' on ', /Pipeline/parameters/parameter[name='functroot']/values/unique/text(), ' task.')^</value>
+        </argument>
+        <argument id="host">
+          <value>^/Pipeline/parameters/parameter[name='mailhost']/values/unique/text()^</value>
+        </argument>
+        <argument id="body">
+          <value>
+            ^concat('Dear ',/Pipeline/parameters/parameter[name='userfullname']/values/unique/text(),',&lt;br&gt; &lt;p&gt;', ' NIFTI files have been generated for  ', /Pipeline/parameters/parameter[name='subjects']/values/unique/text(),' by Task fMRI HCP Pipeline. Details of the  session are available  &lt;a href="',/Pipeline/parameters/parameter[name='host']/values/unique/text(),'/app/action/DisplayItemAction/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID/search_value/',/Pipeline/parameters/parameter[name='xnat_id']/values/unique/text(),'"&gt;', ' here. &lt;/a&gt; &lt;/p&gt;&lt;br&gt;', ' &lt;/p&gt;&lt;br&gt;', /Pipeline/parameters/parameter[name='xnatserver']/values/unique/text(),' Team.')^
+          </value>
+        </argument>
+      </resource>
+    </step>
+
+  </steps>
+</Pipeline>
