@@ -37,7 +37,10 @@
     <pip:argument id="grayordinatesres" nospace="true" prefix="-">
       <pip:name>-grayordinatesres=</pip:name>
     </pip:argument>
-    
+    <pip:argument id="regname" nospace="true" prefix="-">
+      <pip:name>-regname=</pip:name>
+    </pip:argument>
+
   </pip:input>
 
 </pip:Resource>
