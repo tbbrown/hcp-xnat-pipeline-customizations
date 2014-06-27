@@ -683,7 +683,9 @@
         <argument id="grayordinatesres">
           <value>2</value>
         </argument>
-        
+        <argument id="regname">
+          <value>MSMSulc</value>
+        </argument>
       </resource>
     </step>
    <step id="26a" description="Copy EV and Physio Files">
