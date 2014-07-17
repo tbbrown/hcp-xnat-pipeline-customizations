@@ -141,6 +141,7 @@ OutputFileURIName = list()
 OutputFilePathName = list()
 
 if (Resource is not None):
+    print "Resource is not None"
     
     #===========================================================================
     # check for session on input, if not present do the full Resources call, this is a resource hog...
@@ -169,7 +170,8 @@ if (Resource is not None):
         # if entire RESOURCE is requested...
         #=======================================================================
         if (Files == None):
-
+            print "Files == None, entire resource requested"
+            
             FilesepIdx = [j for j, x in enumerate(ResourceMeta.get('Path')[i]) if x == '/']
             
             # try to catch the wildcard, so all subdirectories get pulled too...
@@ -208,6 +210,7 @@ if (Resource is not None):
         # else grab just some files from RESOURCE...
         #=======================================================================
         else:
+            print "Just grabbing some files from the RESOURCE"
             for j in xrange(0, len(Files)):
                 if (ResourceMeta.get('Path')[i].find(Files[j]) != -1) and (ResourceMeta.get('Path')[i] not in FilePathName):
                     FileName.append(ResourceMeta.get('Name')[i])
@@ -220,6 +223,7 @@ if (Resource is not None):
 
     
 else:
+    print "Resource is None"
     #===========================================================================
     # NOTE: Scans being collected, directory structure not present.  Flatten has no affect...
     #===========================================================================
@@ -252,7 +256,10 @@ else:
     
     
 #Write = True    
-#if Write:        
+#if Write:
+print "FilePathNameReadable: " + str(FilePathNameReadable)
+print "all(FilePathNameReadable: " + str(all(FilePathNameReadable))
+
 if FilePathNameReadable and all(FilePathNameReadable):
     print ('File system copy to %s' % (writeHCP.DestinationDir))
     writeHCP.writeFileFromPath(FilePathName, OutputFileName)
