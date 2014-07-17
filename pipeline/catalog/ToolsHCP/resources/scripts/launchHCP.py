@@ -12,6 +12,8 @@ import socket
 import subprocess
 import sys
 import time
+import requests
+import json
 
 import xml.etree.ElementTree as ET
 
@@ -244,6 +246,16 @@ FunctionalRoots = ['tfMRI_LANGUAGE', 'tfMRI_SOCIAL', 'tfMRI_RELATIONAL', 'tfMRI_
 
 debugShowRetrievedInputParams()
 debugShowStaticParams()
+
+#===============================================================================
+# Get Token username and password
+#===============================================================================
+
+token_request_url = 'https://' + Server + '/data/services/tokens/issue'
+token_response = requests.get(token_request_url, auth=(User, Password))
+token=json.loads(token_response.text)
+User=token['alias']
+Password=token['secret']
 
 #===============================================================================
 # pyHCP INTERFACE...
@@ -485,9 +497,11 @@ for h in xrange(0, len(SubjectsList)):
             PathMatch = list()
             ScanIdList = list()
             StructResources = ['T1w_MPR1_unproc', 'T1w_MPR2_unproc', 'T2w_SPC1_unproc', 'T2w_SPC2_unproc']
+
             getHCP.Resource = StructResources[0]
+                       
             resourceMeta = getHCP.getSubjectResourceMeta()
-            
+            debugPrint("resourceMeta: " + str(resourceMeta))
 
             StructuralSeriesDescDict = {'T1w_MPR1' : 'T1w_MPR1', 'T1w_MPR2' : 'T1w_MPR2', 'T2w_SPC1' : 'T2w_SPC1', 'T2w_SPC2' : 'T2w_SPC2'}
             StructuralSeriesDescScanIdDict = {'T1w_MPR1' : None, 'T1w_MPR2' : None, 'T2w_SPC1' : None, 'T2w_SPC2' : None}
@@ -502,6 +516,9 @@ for h in xrange(0, len(SubjectsList)):
             except:
                 fieldmapMagIdx = 0
                 filedmapPhaIdx = 0
+
+            debugPrint("fieldmapMagIdx: " + str(fieldmapMagIdx))
+            debugPrint("filedmapPhaIdx: " + str(filedmapPhaIdx))
             
             if (typeList[fieldmapMagIdx] == 'FieldMap') and (qualityList[fieldmapMagIdx] in UsableList): 
                 MagScanId = idList[fieldmapMagIdx]
@@ -686,7 +703,7 @@ for h in xrange(0, len(SubjectsList)):
 
     debugPrint("After determining parameters for Structural Preprocessing")
     debugShowXnatParameters(Parameters)
-                
+   
     #=======================================================================
     # FunctionalHCP
     #=======================================================================
@@ -834,7 +851,7 @@ for h in xrange(0, len(SubjectsList)):
             OrigSmoothingFWHM4 = 2
             FinalSmoothingFWHM4 = 12
             TemporalFilter4 = 200
-            Confoundr4 = 'NONE'
+            Confound4 = 'NONE'
             VolumeBasedAnal4 = 'NO'
 
     	    TaskFunctionalSeriesRootList = list()
