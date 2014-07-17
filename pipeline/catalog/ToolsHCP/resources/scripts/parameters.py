@@ -2,6 +2,8 @@
 Created on 2013-12-13
 
 @author: Mohana Ramaratnam (mohanakannan9@gmail.com)
+@author: Timothy B. Brown (tbbrown@wustl.edu)
+         Added showParameters member function to XNATPipelineParameters class
 '''
 
 import sys
@@ -53,6 +55,19 @@ class XNATPipelineParameters(object):
 #            outputFileObj.write(parameterDataStr)
         print 'Parameter File saved to %s' % (pathToParamsFile)   
 
+
+    def showParameters(self, prefix):
+        parameters = self.ParametersRootElement
+        for parameter in parameters:
+            name = ""
+            values = []
+            for child in parameter:
+                if child.tag == "{http://nrg.wustl.edu/pipeline}name":
+                    name = child.text
+                elif child.tag == "{http://nrg.wustl.edu/pipeline}values":
+                    for vChild in child:
+                        values.append(vChild.text)
+            print prefix + name + " : " + str(values)
 
     def indent(self,elem, level=0):
     #copy and paste from http://effbot.org/zone/element-lib.htm#prettyprint
