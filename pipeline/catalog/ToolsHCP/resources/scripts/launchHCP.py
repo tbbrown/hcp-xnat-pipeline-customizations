@@ -2,6 +2,7 @@
 Created on Dec 6, 2013
 
 @author: Mohana Ramaratnam (based on script - getPipelineParamsRun.py by Tony Wilson)
+@author: Timothy B. Brown (tbbrown@wustl.edu) - added Debugging related outputs
 '''
 import argparse
 import datetime
@@ -20,8 +21,107 @@ from workflow import Workflow
 from parameters import XNATPipelineParameters
 from pyHCP import pyHCP, getHCP, writeHCP
 
+#===============================================================================
+# Description
+#===============================================================================
+# Show all parameters retrieved from the command line
+# - Used for debugging purposes
+def debugShowRetrievedInputParams():
+    if not Debug: return
 
+    print ""
+    print "User Input Parameters and Defaults"
+    print ""
+    print "\tUser: " + User
+    print "\tPassword: " + "#######"
+    print "\tLaunchStructural: " + str(LaunchStructural)
+    print "\tLaunchFunctional: " + str(LaunchFunctional)
+    print "\tLaunchDiffusion: " + str(LaunchDiffusion)
+    print "\tLaunchTask: " + str(LaunchTask)
+    print "\tLaunchICA: " + str(LaunchICA)
+    print "\tLaunchMPP: " + str(LaunchMPP)
+    print "\tSubjects: " + str(Subjects)
+    print "\tServer: " + str(Server)
+    print "\tFunctSeries: " + str(FunctSeries)
+    print "\tProject: " + str(Project)
+    print "\tShadow: " + str(Shadow)
+    print "\tBuild: " + str(Build)
+    print "\tSleepTime: " + str(SleepTime)
+    print "\tCompute: " + str(Compute)
+    print "\tLaunch: " + str(Launch)
+    print "\tDebug: " + str(Debug)
 
+#===============================================================================
+# Description
+#===============================================================================
+# Show all parameters deemed to be "static" by this script
+# Those that are placed in variables, but not retrieved from command line
+# and therefore not variable from run to run of this script without
+# changes to the script itself
+# - Used for debugging purposes
+def debugShowStaticParams():
+    if not Debug: return
+    
+    print ""
+    print "Static (not user changable) parameters"
+    print ""
+    print "\tWhere to find the XNAT DB installation - dbStr:",
+    print str(dbStr)
+ 
+    print "\tWhere to find the script which launches pipelines",
+    print "on various clusters - JobSubmitter: " + str(JobSubmitter)
+ 
+    print "\tWhere to find XnatPipelineLauncher - PipelineLauncher:",
+    print str(PipelineLauncher)
+    
+    print "\tLocation of Structural Pipeline Descriptor",
+    print "- structuralPipelineName:",
+    print str(structuralPipelineName)
+    
+    print "\tLocation of Functional Pipeline Descriptor",
+    print "- functionalPipelineName:",
+    print str(functionalPipelineName)
+    
+    print "\tLocation of Diffusion Pipeline Descriptor",
+    print "- diffusionPipelineName:",
+    print str(diffusionPipelineName)
+    
+    print "\tLocation of Task fMRI Pipeline Descriptor",
+    print "- taskPipelineName:",
+    print str(taskPipelineName)
+    
+    print "\tLocation of Minimal Preprocessing Pipeline (MPP) Descriptor",
+    print "- mppPipelineName:",
+    print str(mppPipelineName)
+    
+    print "\tDataType: " + str(DataType)
+    print "\tNofityUser: " + str(NotifyUser)
+    print "\tNofityAdmin: " + str(NotifyAdmin)
+    print "\tMailHost: " + str(MailHost)
+    print "\tUserFullNameStr: " + str(UserFullNameStr)
+    print "\tXnatServerStr: " + str(XnatServerStr)
+    print "\tUserEmail: " + str(UserEmail)
+    print "\tUserFullName: " + str(UserFullName)
+    print "\tXnatServer: " + str(XnatServer)
+    print "\tAdminEmail: " + str(AdminEmail)
+    print "\tThe FunctionalRoots are the first part of the series descriptions",
+    print "\tfor series that will be submitted to the Functional Analysis Pipeline"
+    print "\tFunctionalRoots: " + str(FunctionalRoots)
+
+def debugShowXnatParameters(Parameters):
+    if not Debug: return
+    
+    print ""
+    print "XNAT Parameters defined to this point"
+    print ""
+    Parameters.showParameters("\t")
+
+#===============================================================================
+# Description
+#===============================================================================
+# Print something only if in debugging mode
+def debugPrint( str ):
+    if Debug: print str
 
 #===============================================================================
 # Description
@@ -67,6 +167,8 @@ parser.add_argument("-Compute", "--Compute", dest="Compute", default='NRG', type
 # FOR SAFETY...
 parser.add_argument("-Launch", "--Launch", dest="Launch", default='0', type=int)
 
+# FOR DEBUGGING...
+parser.add_argument("-Debug", "--Debug", dest="Debug", action='store_true')
 
 args = parser.parse_args()
 #MANDATORY....
@@ -91,6 +193,7 @@ Build = args.Build
 Compute = args.Compute
 Launch = args.Launch
 SleepTime = args.SleepTime
+Debug = args.Debug
 
 dbStr = 'hcpdb'
 JobSubmitter = '/data/%s/pipeline/bin/schedule ' % (dbStr)
@@ -139,6 +242,9 @@ AdminEmail = ' -parameter adminemail=%s' % (NotifyAdminStr)
 FunctionalRoots = ['tfMRI_LANGUAGE', 'tfMRI_SOCIAL', 'tfMRI_RELATIONAL', 'tfMRI_MOTOR', 'tfMRI_GAMBLING', 'tfMRI_WM', 'tfMRI_EMOTION']
 
 
+debugShowRetrievedInputParams()
+debugShowStaticParams()
+
 #===============================================================================
 # pyHCP INTERFACE...
 #===============================================================================
@@ -148,10 +254,16 @@ getHCP.Project = Project
 #===============================================================================
 
 SubjectsList = Subjects.split(',')
+debugPrint("")
+debugPrint("Starting Processing")
+debugPrint("\tSubjectsList: " + str(SubjectsList))
+
 if (Shadow != None):
     ShadowList = Shadow.split(',')
 else:
     ShadowList = ('')
+
+debugPrint("\tShadowList: " + str(ShadowList))
     
 if (Build != None) and (Build != 'ssd'):
     BuildList = Build.split(',')
@@ -159,6 +271,8 @@ elif(Build == 'ssd'):
     BuildList = Build
 else:
     BuildList = ('')
+
+debugPrint("\tBuildList: " + str(BuildList))
     
 #===============================================================================
 # Set up ShadowArray and BuildArray...
@@ -181,6 +295,8 @@ ShadowIdx = 0
 FunctionalN = 0
 for h in xrange(0, len(SubjectsList)): 
     getHCP.Subject = SubjectsList[h]
+    debugPrint("\n\tWorking with subject: " + getHCP.Subject)
+
     SubjectSessions = getHCP.getSubjectSessions()
     
     # find correct session...
@@ -194,6 +310,8 @@ for h in xrange(0, len(SubjectsList)):
                 getHCP.Session = SubjectSessions.get('Sessions')[SubjectSessions.get('Types').index(PipelineSubString[0])]
             except:
                 break
+
+    debugPrint("\tExaming session: " + getHCP.Session)
             
     sessionMeta = getHCP.getSessionMeta()
     seriesList = sessionMeta.get('Series')
@@ -201,6 +319,15 @@ for h in xrange(0, len(SubjectsList)):
     idList = sessionMeta.get('IDs')
     qualityList = sessionMeta.get('Quality')
     
+    if Debug:
+        print "\tSession Meta-information"
+        njs=15 # Narrow Justification
+        wjs=30 # Wide Justification
+        print "\t\t" + "Series ID".ljust(njs) + "Series Type".ljust(wjs) + "Series Desc".ljust(wjs) + "Series Quality".ljust(wjs)
+        print "\t\t" + "---------".ljust(njs) + "-----------".ljust(wjs) + "-----------".ljust(wjs) + "--------------".ljust(wjs)
+        for seriesNo in xrange(0, len(seriesList)):
+            print "\t\t" + idList[seriesNo].ljust(njs) + typeList[seriesNo].ljust(wjs) + seriesList[seriesNo].ljust(wjs) + qualityList[seriesNo].ljust(wjs)
+
     if (Build == 'hds'):
         BuildDirRoot = '/data/%s/build_hds/%s/' % (dbStr, Project)
     elif (Build == 'sds'):
@@ -236,6 +363,9 @@ for h in xrange(0, len(SubjectsList)):
         ParameterFilePath='%s\%s.xml' % (BuildDirRoot,getHCP.Subject)
     else:
         ParameterFilePath='%s/%s.xml' % (currBuildDir,getHCP.Subject)
+
+    debugPrint("\tParameterFilePath: " + ParameterFilePath)
+
         
     #=======================================================================
     # Shadow server stuff...
@@ -258,6 +388,10 @@ for h in xrange(0, len(SubjectsList)):
     # DiffusionHCP....
     #===============================================================================
     if (LaunchDiffusion == 1):
+        debugPrint("")
+        debugPrint("Determining parameters for Diffusion Preprocessing")
+        debugPrint("")
+
         #===================================================================
         # grab a dummy scan id to feed to XML if scan does not exist.  XML must have scan id, else it will break...
         #===================================================================
@@ -271,6 +405,9 @@ for h in xrange(0, len(SubjectsList)):
             DiffusionSeriesList = ['DWI_RL_dir95','DWI_RL_dir96','DWI_RL_dir97','DWI_LR_dir95','DWI_LR_dir96','DWI_LR_dir97']
         elif (dbStr == 'hcpdb'):
             DiffusionSeriesList = ['DWI_dir95_RL','DWI_dir96_RL','DWI_dir97_RL','DWI_dir95_LR','DWI_dir96_LR','DWI_dir97_LR']
+
+        debugPrint("\tSeries Descriptions for series that will have Diffusion Preprocessing run on them")
+        debugPrint("\t" + str(DiffusionSeriesList))
         
         DiffusionScanIdList = ['RL_1ScanId', 'RL_2ScanId', 'RL_3ScanId', 'LR_1ScanId', 'LR_2ScanId', 'LR_3ScanId']
         DiffusionScanIdDict = {'RL_1ScanId' : None, 'RL_2ScanId' : None, 'RL_3ScanId' : None, 'LR_1ScanId' : None, 'LR_2ScanId' : None, 'LR_3ScanId' : None}
@@ -283,9 +420,13 @@ for h in xrange(0, len(SubjectsList)):
         for j in xrange(0, len(DiffusionSeriesList)):
             currDiffDesc = DiffusionSeriesList[j]
             if (sessionMeta.get('Series').count(currDiffDesc) > 0):
+                debugPrint("\tHave a series with description: " + currDiffDesc)
                 currDiffIdx = sessionMeta.get('Series').index(currDiffDesc)
                 currScanId = sessionMeta.get('IDs')[currDiffIdx]
                 currQuality = sessionMeta.get('Quality')[currDiffIdx]
+
+                debugPrint("\tFirst series with description: " + currDiffDesc + " has scan ID: " + currScanId + " and quality: " + currQuality)
+
                 getHCP.Scan = currScanId
                 scanParms = getHCP.getScanParms()
                 scanMeta = getHCP.getScanMeta()
@@ -308,10 +449,12 @@ for h in xrange(0, len(SubjectsList)):
                 DiffusionDirDict[DiffusionDirList[DiffusionSeriesList.index(currDiffDesc)]] = 'EMPTY'
         
         EchoSpacing = '%s' % (sum(EchoSpacingList) / float(len(EchoSpacingList)))
- 
+        debugPrint("\n\tAverage EchoSpacing: " + str(EchoSpacing))
+
          # 1 for RL/LR phase encoding and 2 for AP/PA phase encoding
         PhaseEncodingDir = '1'          
- 
+        debugPrint("\tAssuming Phase Encoding of RL/LR. Not AP/PA");
+
         Parameters.addUniqueParameter('launchDiffusion','1')
         Parameters.addUniqueParameter('diffusion_EchoSpacing',EchoSpacing)
         Parameters.addUniqueParameter('diffusion_PhaseEncodingDir',PhaseEncodingDir)
@@ -328,11 +471,17 @@ for h in xrange(0, len(SubjectsList)):
     else:
           Parameters.addUniqueParameter('launchDiffusion','0')
 
+    debugPrint("After determining parameters for Diffusion Preprocessing")
+    debugShowXnatParameters(Parameters)
+
     #=======================================================================
     # StructuralHCP
     #=======================================================================
     if (LaunchStructural == 1):
-            
+            debugPrint("")
+            debugPrint("Determining Parameters for Structural Preprocessing")
+            debugPrint("")
+
             PathMatch = list()
             ScanIdList = list()
             StructResources = ['T1w_MPR1_unproc', 'T1w_MPR2_unproc', 'T2w_SPC1_unproc', 'T2w_SPC2_unproc']
@@ -369,6 +518,9 @@ for h in xrange(0, len(SubjectsList)):
             else:
                 PhaScanId = 1
                 phaScanParms = {'GEFieldMapGroup': 'NA'}
+
+            debugPrint("\tID of Magnitude FiledMap Scan = " + str(MagScanId))
+            debugPrint("\tID of Phase FieldMap Scan = " + str(PhaScanId))
                 
                     
             # collect quality, series descriptions, and scan ids...
@@ -379,7 +531,10 @@ for h in xrange(0, len(SubjectsList)):
                 if (currSeriesDesc in StructuralSeriesList) and (qualityList[j] in UsableList): 
                     StructuralSeriesDescScanIdDict[currSeriesDesc] = idList[j]
                     StructuralSeriesQualityDict[currSeriesDesc] = qualityList[j]
-                    
+
+            debugPrint("\tBefore checking for absense or quality of Structural Scans")
+            debugPrint("\tStructuralSeriesDescScanIdDict = " + str(StructuralSeriesDescScanIdDict))
+            debugPrint("\tStructuralSeriesDescDict = " + str(StructuralSeriesDescDict))
 
                 
             # this should check for absence and quality of scans and swap if bad or absent...
@@ -402,6 +557,11 @@ for h in xrange(0, len(SubjectsList)):
                         if (StructuralSeriesDescScanIdDict.get('T2w_SPC1') != None): # or (StructuralSeriesQualityDict.get('T2w_SPC1') not in UsableList):
                             StructuralSeriesDescScanIdDict['T2w_SPC2'] = StructuralSeriesDescScanIdDict.get('T2w_SPC1')
                             StructuralSeriesDescDict['T2w_SPC2'] = 'T2w_SPC1'
+
+
+            debugPrint("\tAfter checking for absense or quality of Structural Scans")
+            debugPrint("\tStructuralSeriesDescScanIdDict = " + str(StructuralSeriesDescScanIdDict))
+            debugPrint("\tStructuralSeriesDescDict = " + str(StructuralSeriesDescDict))
                             
         
             # Collect scan ids for later testing...
@@ -443,8 +603,13 @@ for h in xrange(0, len(SubjectsList)):
             
         #Set the parameters for Structural pipeline
          
- 
+            debugPrint("scanParms.get('GEFieldMapGroup') = " + str(scanParms.get('GEFieldMapGroup')))
+            debugPrint("magScanParms.get('GEFieldMapGroup') = " + str(magScanParms.get('GEFieldMapGroup')))
+            debugPrint("phaScanParms.get('GEFieldMapGroup') = " + str(phaScanParms.get('GEFieldMapGroup')))
+
             if (scanParms.get('GEFieldMapGroup') == magScanParms.get('GEFieldMapGroup') == phaScanParms.get('GEFieldMapGroup')):
+                    debugPrint("GEFieldMapGroup values match across scanParms, magScanParms, phaScanParms")
+ 
                     # do T1w and T2w path test...
                     for j in xrange(0, len(StructResources)):
                         getHCP.Resource = StructResources[j]
@@ -464,7 +629,10 @@ for h in xrange(0, len(SubjectsList)):
                                         PathMatch.append(False)    
                            else:
                                 PathMatch.append(True)            
+                                
                     if all(PathMatch):
+                            debugPrint("Setting Parameters valus for Structural Preprocessing")
+
                             Parameters.addUniqueParameter('launchStructural','1')
                             Parameters.addUniqueParameter('structural_magscanid',MagScanId)
                             Parameters.addUniqueParameter('structural_phascanid',PhaScanId)
@@ -513,16 +681,24 @@ for h in xrange(0, len(SubjectsList)):
             else:
                 print 'ERROR: GEFieldMapGroup mismatch for subject %s, session %s, structural pipeline, on server %s.' % (getHCP.Subject, getHCP.Session, getHCP.Server) 
     else:
+        debugPrint("Not launching structural")
         Parameters.addUniqueParameter('launchStructural','0')
 
+    debugPrint("After determining parameters for Structural Preprocessing")
+    debugShowXnatParameters(Parameters)
                 
     #=======================================================================
     # FunctionalHCP
     #=======================================================================
     if (LaunchFunctional == 1):
+        debugPrint("")
+        debugPrint("Determining Parameters for Functional Preprocessing")
+        debugPrint("")
+
         # build the subject specific functional lists...
         if (FunctSeries == None):
             FunctionalList = list()
+            debugPrint("\tSeries with the following Types will be put through functional preprocessing: tfMRI or rfMRI")
             for i in xrange(0, len(sessionMeta.get('Types'))):
                 if (sessionMeta.get('Types')[i] == 'tfMRI') or (sessionMeta.get('Types')[i] == 'rfMRI'):
                     FunctionalList.append(sessionMeta.get('Series')[i])
@@ -584,10 +760,18 @@ for h in xrange(0, len(SubjectsList)):
     else:
          Parameters.addUniqueParameter('launchFunctional','0')
 
+    debugPrint("After determining parameters for Function Preprocessing");
+    debugShowXnatParameters(Parameters)
+
     #===============================================================================
     # FIX HCP....
     #===============================================================================
     if(LaunchICA == 1):
+        
+    	  debugPrint("")
+          debugPrint("Determining Parameters for ICA processing")
+          debugPrint("")
+
     	  RestingStateFunctionalSeriesList = list()	
           # build the subject specific RESTing state functional lists...
           for i in xrange(0, len(sessionMeta.get('Types'))):
@@ -600,10 +784,16 @@ for h in xrange(0, len(SubjectsList)):
     else:
     	  Parameters.addUniqueParameter('launchICAFIX','0')
 
+    debugPrint("After determining parameters for ICA processing")
+    debugShowXnatParameters(Parameters)
+
     #===============================================================================
     # TaskfMRIHCP....
     #===============================================================================
     if (LaunchTask == 1):
+            debugPrint("")
+            debugPrint("Determining Parameters for Task processing")
+            debugPrint("")
 
             #===================================================================
             # <parameter> functroot
@@ -615,42 +805,107 @@ for h in xrange(0, len(SubjectsList)):
             # <parameter> confound
             # <parameter> vba
             #===================================================================
-            LowResMesh = 32
-            GrayOrdinates = 2
-            OrigSmoothingFWHM = 2
-            FinalSmoothingFWHM = 4
-            TemporalFilter = 200
-            Confound = 'NONE'
-            VolumeBasedAnal = 'YES'
+            LowResMesh1 = 32
+            GrayOrdinates1 = 2
+            OrigSmoothingFWHM1 = 2
+            FinalSmoothingFWHM1 = 2
+            TemporalFilter1 = 200
+            Confound1 = 'NONE'
+            VolumeBasedAnal1 = 'NO'
             
-            
+            LowResMesh2 = 32
+            GrayOrdinates2 = 2
+            OrigSmoothingFWHM2 = 2
+            FinalSmoothingFWHM2 = 4
+            TemporalFilter2 = 200
+            Confound2 = 'NONE'
+            VolumeBasedAnal2 = 'YES'
+
+            LowResMesh3 = 32
+            GrayOrdinates3 = 2
+            OrigSmoothingFWHM3 = 2
+            FinalSmoothingFWHM3 = 8
+            TemporalFilter3 = 200
+            Confound3 = 'NONE'
+            VolumeBasedAnal3 = 'NO'
+
+            LowResMesh4 = 32
+            GrayOrdinates4 = 2
+            OrigSmoothingFWHM4 = 2
+            FinalSmoothingFWHM4 = 12
+            TemporalFilter4 = 200
+            Confoundr4 = 'NONE'
+            VolumeBasedAnal4 = 'NO'
+
     	    TaskFunctionalSeriesRootList = list()
     	    
-            # build the subject specific RESTing state functional lists...
+            # build the subject specific task state functional lists...
             for i in xrange(0, len(sessionMeta.get('Types'))):
+              debugPrint("sessionMeta.get('Types')[i] = " + str(sessionMeta.get('Types')[i]))
               if (sessionMeta.get('Types')[i] == 'tfMRI'):
                   seriesName = sessionMeta.get('Series')[i]
+                  debugPrint("seriesName = " + seriesName)
                   seriesParts = seriesName.split('_') 
-                  TaskFunctionalSeriesRootList.append(seriesParts[0]+'_'+seriesParts[1])
+                  debugPrint("seriesParts = " + str(seriesParts))
+                  functionalSeriesRoot = seriesParts[0] + '_' + seriesParts[1]
+                  debugPrint("functionalSeriesRoot = " + str(functionalSeriesRoot))
+                  if (functionalSeriesRoot not in TaskFunctionalSeriesRootList):
+                      TaskFunctionalSeriesRootList.append(seriesParts[0]+'_'+seriesParts[1])
+
 
 	    Parameters.addListParameters('taskfMRI_functroot',TaskFunctionalSeriesRootList)
 
-            Parameters.addUniqueParameter('taskfMRI_lowresmesh',LowResMesh)
-            Parameters.addUniqueParameter('taskfMRI_grayordinates',GrayOrdinates)
-            Parameters.addUniqueParameter('taskfMRI_origsmoothingFWHM',OrigSmoothingFWHM)
-            Parameters.addUniqueParameter('taskfMRI_finalsmoothingFWHM',FinalSmoothingFWHM)
-            Parameters.addUniqueParameter('taskfMRI_temporalfilter',TemporalFilter)
-            Parameters.addUniqueParameter('taskfMRI_confound',Confound)
-            Parameters.addUniqueParameter('taskfMRI_vba',VolumeBasedAnal)
+            # Parameters for Run 1 - Surface Smoothing 2, No Volume
+            Parameters.addUniqueParameter('taskfMRI_lowresmesh1',LowResMesh1)
+            Parameters.addUniqueParameter('taskfMRI_grayordinates1',GrayOrdinates1)
+            Parameters.addUniqueParameter('taskfMRI_origsmoothingFWHM1',OrigSmoothingFWHM1)
+            Parameters.addUniqueParameter('taskfMRI_finalsmoothingFWHM1',FinalSmoothingFWHM1)
+            Parameters.addUniqueParameter('taskfMRI_temporalfilter1',TemporalFilter1)
+            Parameters.addUniqueParameter('taskfMRI_confound1',Confound1)
+            Parameters.addUniqueParameter('taskfMRI_vba1',VolumeBasedAnal1)
+
+            # Parameters for Run 2 - Surface Smoothing 4, Volume Smoothing 4
+            Parameters.addUniqueParameter('taskfMRI_lowresmesh2',LowResMesh2)
+            Parameters.addUniqueParameter('taskfMRI_grayordinates2',GrayOrdinates2)
+            Parameters.addUniqueParameter('taskfMRI_origsmoothingFWHM2',OrigSmoothingFWHM2)
+            Parameters.addUniqueParameter('taskfMRI_finalsmoothingFWHM2',FinalSmoothingFWHM2)
+            Parameters.addUniqueParameter('taskfMRI_temporalfilter2',TemporalFilter2)
+            Parameters.addUniqueParameter('taskfMRI_confound2',Confound2)
+            Parameters.addUniqueParameter('taskfMRI_vba2',VolumeBasedAnal2)
+
+            # Parameters for Run 3 - Surface Smoothing 8, No Volume
+            Parameters.addUniqueParameter('taskfMRI_lowresmesh3',LowResMesh3)
+            Parameters.addUniqueParameter('taskfMRI_grayordinates3',GrayOrdinates3)
+            Parameters.addUniqueParameter('taskfMRI_origsmoothingFWHM3',OrigSmoothingFWHM3)
+            Parameters.addUniqueParameter('taskfMRI_finalsmoothingFWHM3',FinalSmoothingFWHM3)
+            Parameters.addUniqueParameter('taskfMRI_temporalfilter3',TemporalFilter3)
+            Parameters.addUniqueParameter('taskfMRI_confound3',Confound3)
+            Parameters.addUniqueParameter('taskfMRI_vba3',VolumeBasedAnal3)
+
+            # Parameters for Run 4 - Surface Smoothing 12, No Volume
+            Parameters.addUniqueParameter('taskfMRI_lowresmesh4',LowResMesh4)
+            Parameters.addUniqueParameter('taskfMRI_grayordinates4',GrayOrdinates4)
+            Parameters.addUniqueParameter('taskfMRI_origsmoothingFWHM4',OrigSmoothingFWHM4)
+            Parameters.addUniqueParameter('taskfMRI_finalsmoothingFWHM4',FinalSmoothingFWHM4)
+            Parameters.addUniqueParameter('taskfMRI_temporalfilter4',TemporalFilter4)
+            Parameters.addUniqueParameter('taskfMRI_confound4',Confound4)
+            Parameters.addUniqueParameter('taskfMRI_vba4',VolumeBasedAnal4)
 
             Parameters.addUniqueParameter('launchTask','1')
     else:
     	    Parameters.addUniqueParameter('launchTask','0')
 
+    debugPrint("After determining parameters for Task processing")
+    debugShowXnatParameters(Parameters)
+
     #===============================================================================
     # Launch MPP....
     #===============================================================================
-    if (LaunchStructural == 1 or LaunchFunctional == 1 or  LaunchDiffusion == 1 or LaunchMPP == 1 or LaunchICA == 1 or  LaunchTask == 1):            
+    if (LaunchStructural == 1 or LaunchFunctional == 1 or  LaunchDiffusion == 1 or LaunchMPP == 1 or LaunchICA == 1 or  LaunchTask == 1):
+            debugPrint("");
+            debugPrint("Adding miscellaneous project and email related parameters")
+            debugPrint("")
+            
             #Since the wrk:xml field is exceeding 10000 characters, the following are supplied on commandline
             Parameters.addUniqueParameter('mailhost',MailHostStr)
             Parameters.addUniqueParameter('useremail',NotifyUserStr)
@@ -661,6 +916,9 @@ for h in xrange(0, len(SubjectsList)):
             Parameters.addUniqueParameter('project',Project)
             Parameters.addUniqueParameter('label',getHCP.Session)
 
+            debugPrint("")
+            debugPrint("About to save XNAT Parameters to file path: " + ParameterFilePath)
+            debugPrint("")
             Parameters.saveParameters(ParameterFilePath)       
             
     if (LaunchMPP == 1):
