@@ -501,7 +501,11 @@ for h in xrange(0, len(SubjectsList)):
             getHCP.Resource = StructResources[0]
                        
             resourceMeta = getHCP.getSubjectResourceMeta()
-            debugPrint("resourceMeta: " + str(resourceMeta))
+            #debugPrint("resourceMeta: " + str(resourceMeta))
+
+            #resourceKeys = resourceMeta.keys()
+            #debugPrint("resourceKeys: " + str(resourceKeys))
+
 
             StructuralSeriesDescDict = {'T1w_MPR1' : 'T1w_MPR1', 'T1w_MPR2' : 'T1w_MPR2', 'T2w_SPC1' : 'T2w_SPC1', 'T2w_SPC2' : 'T2w_SPC2'}
             StructuralSeriesDescScanIdDict = {'T1w_MPR1' : None, 'T1w_MPR2' : None, 'T2w_SPC1' : None, 'T2w_SPC2' : None}
@@ -512,13 +516,13 @@ for h in xrange(0, len(SubjectsList)):
             # grab the fieldmap ids...
             try:
                 fieldmapMagIdx = seriesList.index('FieldMap_Magnitude')
-                filedmapPhaIdx = seriesList.index('FieldMap_Phase')
+                fieldmapPhaIdx = seriesList.index('FieldMap_Phase')
             except:
                 fieldmapMagIdx = 0
-                filedmapPhaIdx = 0
+                fieldmapPhaIdx = 0
 
             debugPrint("fieldmapMagIdx: " + str(fieldmapMagIdx))
-            debugPrint("filedmapPhaIdx: " + str(filedmapPhaIdx))
+            debugPrint("fieldmapPhaIdx: " + str(fieldmapPhaIdx))
             
             if (typeList[fieldmapMagIdx] == 'FieldMap') and (qualityList[fieldmapMagIdx] in UsableList): 
                 MagScanId = idList[fieldmapMagIdx]
@@ -528,15 +532,15 @@ for h in xrange(0, len(SubjectsList)):
                 MagScanId = 1
                 magScanParms = {'GEFieldMapGroup': 'NA'}
                 
-            if (typeList[filedmapPhaIdx] == 'FieldMap') and (qualityList[filedmapPhaIdx] in UsableList):
-                PhaScanId = idList[filedmapPhaIdx]
+            if (typeList[fieldmapPhaIdx] == 'FieldMap') and (qualityList[fieldmapPhaIdx] in UsableList):
+                PhaScanId = idList[fieldmapPhaIdx]
                 getHCP.Scan = PhaScanId
                 phaScanParms = getHCP.getScanParms()
             else:
                 PhaScanId = 1
                 phaScanParms = {'GEFieldMapGroup': 'NA'}
 
-            debugPrint("\tID of Magnitude FiledMap Scan = " + str(MagScanId))
+            debugPrint("\tID of Magnitude FieldMap Scan = " + str(MagScanId))
             debugPrint("\tID of Phase FieldMap Scan = " + str(PhaScanId))
                 
                     
@@ -592,6 +596,9 @@ for h in xrange(0, len(SubjectsList)):
             
             
             
+            debugPrint("\tMagScanId: " + str(MagScanId))
+            debugPrint("\tPhaScanId: " + str(PhaScanId))
+            
             if (MagScanId == 1) and (PhaScanId == 1):
                 TE = 'NONE'
                 sampleSpacingT1w = 'NONE'
@@ -617,7 +624,10 @@ for h in xrange(0, len(SubjectsList)):
                 T1wSampleSpacing = float(sampleSpacingT1w)/1.0e+9
                 T2wSampleSpacing = float(sampleSpacingT2w)/1.0e+9
             
-            
+            debugPrint("\tT1wSampleSpacing: " + str(T1wSampleSpacing))
+            debugPrint("\tT2wSampleSpacing: " + str(T2wSampleSpacing))
+
+
         #Set the parameters for Structural pipeline
          
             debugPrint("scanParms.get('GEFieldMapGroup') = " + str(scanParms.get('GEFieldMapGroup')))
@@ -703,7 +713,10 @@ for h in xrange(0, len(SubjectsList)):
 
     debugPrint("After determining parameters for Structural Preprocessing")
     debugShowXnatParameters(Parameters)
-   
+    #exit()
+
+
+
     #=======================================================================
     # FunctionalHCP
     #=======================================================================
