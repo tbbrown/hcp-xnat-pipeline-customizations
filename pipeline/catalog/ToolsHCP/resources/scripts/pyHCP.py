@@ -242,7 +242,12 @@ class getHCP(pyHCP):
     #===============================================================================
     def getProjects( self ):
         """Get a list of project names from XNAT instance"""
-        
+
+        CSV_HDR_NAME='name'
+        CSV_HDR_ID='id'
+        CSV_HDR_SECONDARY_ID='secondary_id'
+
+
         restURL = self.Server + 'data/projects?format=csv'
         restResults = self.getURLString(restURL)
         
@@ -253,9 +258,9 @@ class getHCP(pyHCP):
         restProjectHeaderSplit = restProjectHeader.split(',')
         #restProjectHeaderSplit = [word.replace('"', '') for word in restProjectHeader]
         
-        projectNameIdx = restProjectHeaderSplit.index('name')
-        projectIdx = restProjectHeaderSplit.index('ID')
-        projectSecondaryIdx = restProjectHeaderSplit.index('secondary_ID')
+        projectNameIdx = restProjectHeaderSplit.index(CSV_HDR_NAME)
+        projectIdx = restProjectHeaderSplit.index(CSV_HDR_NAME)
+        projectSecondaryIdx = restProjectHeaderSplit.index(CSV_HDR_SECONDARY_ID)
         
         for i in xrange(1, restEndCount):
             currRow = restResultsSplit[i]
