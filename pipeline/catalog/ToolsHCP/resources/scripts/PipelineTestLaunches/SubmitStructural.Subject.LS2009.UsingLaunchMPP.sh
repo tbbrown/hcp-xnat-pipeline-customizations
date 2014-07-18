@@ -15,7 +15,8 @@ python ../launchMPP.py \
 --project=PipelineTest \
 --subject=LS2009 \
 --sessionsuffix=_3T \
---structural
+--structural \
+--fieldmaps=SE
 
 # -User ${userid} \
 # -Password ${password} \
