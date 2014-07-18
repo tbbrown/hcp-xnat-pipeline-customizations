@@ -23,7 +23,7 @@
 #
 #~ND_END~
 
-DEPLOY_DIRECTORY=/data/hcpdb/home/HCP_PYTHON/db_pipeline_customizations/templates/misc/catalog/ToolsHCP/resource/scripts/
+DEPLOY_DIRECTORY=/data/hcpdb/home/HCP_PYTHON/db_pipeline_customizations/templates/misc/catalog/ToolsHCP/resources/scripts/
 
 # rsync -avz . ${DEPLOY_DIRECTORY}
 rsync --archive --verbose --compress . ${DEPLOY_DIRECTORY}
