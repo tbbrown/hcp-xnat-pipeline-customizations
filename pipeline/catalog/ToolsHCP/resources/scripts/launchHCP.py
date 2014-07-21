@@ -713,7 +713,7 @@ for h in xrange(0, len(SubjectsList)):
 
     debugPrint("After determining parameters for Structural Preprocessing")
     debugShowXnatParameters(Parameters)
-    exit()
+    #exit()
 
 
 
