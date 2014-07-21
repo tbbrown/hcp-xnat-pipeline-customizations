@@ -33,6 +33,12 @@ class MppParameters(object):
     _KEY_FIRST_T1W_PHASEFIELDMAP_FILE_NAME = 'structural_t1phascanname_1'
     _KEY_FIRST_T1W_PHASEFIELDMAP_SCAN_NUMBER = 'structural_t1phascanid_1'
 
+    _KEY_FIRST_T1W_POS_SE_FIELDMAP_FILE_NAME = 'structural_t1_pos_se_fieldmap_1'
+    _KEY_FIRST_T1W_POS_SE_FIELDMAP_SCAN_NUMBER = 'structural_t1_pos_se_scanid_1'
+
+    _KEY_FIRST_T1W_NEG_SE_FIELDMAP_FILE_NAME = 'structural_t1_neg_se_fieldmap_1'
+    _KEY_FIRST_T1W_NEG_SE_FIELDMAP_SCAN_NUMBER = 'structural_t1_neg_se_scanid_1'
+
     # Keys for parameters that apply to the second T1w scan
     _KEY_SECOND_T1W_FILE_NAME = 'structural_t1name_2'
     _KEY_SECOND_T1W_SCAN_NUMBER = 'structural_t1scanid_2'
@@ -44,6 +50,12 @@ class MppParameters(object):
 
     _KEY_SECOND_T1W_PHASEFIELDMAP_FILE_NAME = 'structural_t1phascanname_2'
     _KEY_SECOND_T1W_PHASEFIELDMAP_SCAN_NUMBER = 'structural_t1phascanid_2'
+
+    _KEY_SECOND_T1W_POS_SE_FIELDMAP_FILE_NAME = 'structural_t1_pos_se_fieldmap_2'
+    _KEY_SECOND_T1W_POS_SE_FIELDMAP_SCAN_NUMBER = 'structural_t1_pos_se_scanid_2'
+
+    _KEY_SECOND_T1W_NEG_SE_FIELDMAP_FILE_NAME = 'structural_t1_neg_se_fieldmap_2'
+    _KEY_SECOND_T1W_NEG_SE_FIELDMAP_SCAN_NUMBER = 'structural_t1_neg_se_scanid_2'
 
     # Keys for parameters that apply to the first T2w scan
     _KEY_FIRST_T2W_FILE_NAME = 'structural_t2name_1'
@@ -57,6 +69,12 @@ class MppParameters(object):
     _KEY_FIRST_T2W_PHASEFIELDMAP_FILE_NAME = 'structural_t2phascanname_1'
     _KEY_FIRST_T2W_PHASEFIELDMAP_SCAN_NUMBER = 'structural_t2phascanid_1'
 
+    _KEY_FIRST_T2W_POS_SE_FIELDMAP_FILE_NAME = 'structural_t2_pos_se_fieldmap_1'
+    _KEY_FIRST_T2W_POS_SE_FIELDMAP_SCAN_NUMBER = 'structural_t2_pos_se_scanid_1'
+
+    _KEY_FIRST_T2W_NEG_SE_FIELDMAP_FILE_NAME = 'structural_t2_neg_se_fieldmap_1'
+    _KEY_FIRST_T2W_NEG_SE_FIELDMAP_SCAN_NUMBER = 'structural_t2_neg_se_scanid_1'
+
     # Keys for parameters that apply to the second T2w scan
     _KEY_SECOND_T2W_FILE_NAME = 'structural_t2name_2'
     _KEY_SECOND_T2W_SCAN_NUMBER = 'structural_t2scanid_2'
@@ -68,6 +86,16 @@ class MppParameters(object):
 
     _KEY_SECOND_T2W_PHASEFIELDMAP_FILE_NAME = 'structural_t2phascanname_2'
     _KEY_SECOND_T2W_PHASEFIELDMAP_SCAN_NUMBER = 'structural_t2phascanid_2'
+
+    _KEY_SECOND_T2W_POS_SE_FIELDMAP_FILE_NAME = 'structural_t2_pos_se_fieldmap_1'
+    _KEY_SECOND_T2W_POS_SE_FIELDMAP_SCAN_NUMBER = 'structural_t2_pos_se_scanid_1'
+
+    _KEY_SECOND_T2W_NEG_SE_FIELDMAP_FILE_NAME = 'structural_t2_neg_se_fieldmap_1'
+    _KEY_FIRST_T2W_NEG_SE_FIELDMAP_SCAN_NUMBER = 'structural_t2_neg_se_scanid_1'
+
+
+
+
 
     # Keys for parameters that apply to all structural (T1w and T2w) scans
     _KEY_MAGFIELDMAP_FILE_NAME = 'structural_magscanname'

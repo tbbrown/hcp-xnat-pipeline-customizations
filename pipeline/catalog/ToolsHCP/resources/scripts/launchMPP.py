@@ -178,6 +178,11 @@ if (args.structural):
             print("file_name: " + file_name)
             scan_number = file_name_to_scan_number[file_name]            
             print("scan_number: " + scan_number)
+            mpp_parameters.set_first_t1w_positive_spin_echo_fieldmap(filename, scan_number)
+
+
+
+
             # ici mpp_parameters.set_first_t1w_positive_spin_echo_fieldmap(filename, scan_number)
 
             # Set parameter values for the Negative Spin Echo Field Map (LR)
