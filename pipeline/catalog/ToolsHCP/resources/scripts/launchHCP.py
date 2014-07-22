@@ -297,7 +297,7 @@ BuildArray = numpy.tile(BuildList, (numpy.ceil(len(SubjectsList))))
     
 PipelineSubString = None
     
-UsableList = ['good', 'excellent', 'usable', 'undetermined']
+UsableList = ['fair', 'good', 'excellent', 'usable', 'undetermined']
 
 
 
@@ -556,8 +556,8 @@ for h in xrange(0, len(SubjectsList)):
             debugPrint("\tBefore checking for absense or quality of Structural Scans")
             debugPrint("\tStructuralSeriesDescScanIdDict = " + str(StructuralSeriesDescScanIdDict))
             debugPrint("\tStructuralSeriesDescDict = " + str(StructuralSeriesDescDict))
+            debugPrint("\tStructuralSeriesQualityDict = " + str(StructuralSeriesQualityDict))
 
-                
             # this should check for absence and quality of scans and swap if bad or absent...
             for j in xrange(0, len(StructuralSeriesList)):
                 currSeries = StructuralSeriesList[j]
@@ -584,7 +584,6 @@ for h in xrange(0, len(SubjectsList)):
             debugPrint("\tStructuralSeriesDescScanIdDict = " + str(StructuralSeriesDescScanIdDict))
             debugPrint("\tStructuralSeriesDescDict = " + str(StructuralSeriesDescDict))
                             
-        
             # Collect scan ids for later testing...
             ScanIdList.append(MagScanId)
             ScanIdList.append(PhaScanId)
@@ -593,8 +592,6 @@ for h in xrange(0, len(SubjectsList)):
             ScanIdList.append(StructuralSeriesDescScanIdDict.get('T2w_SPC1'))
             ScanIdList.append(StructuralSeriesDescScanIdDict.get('T2w_SPC2'))
             ScanIdList = list(set(ScanIdList))
-            
-            
             
             debugPrint("\tMagScanId: " + str(MagScanId))
             debugPrint("\tPhaScanId: " + str(PhaScanId))
