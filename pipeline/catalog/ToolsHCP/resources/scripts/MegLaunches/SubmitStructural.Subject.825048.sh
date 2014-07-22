@@ -10,6 +10,7 @@ stty echo
 subj="825048"
 
 python ../launchHCP.py \
+-Debug \
 -User ${userid} \
 -Password ${password} \
 -Server db.humanconnectome.org \
