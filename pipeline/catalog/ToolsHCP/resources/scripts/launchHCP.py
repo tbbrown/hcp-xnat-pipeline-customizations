@@ -297,7 +297,7 @@ BuildArray = numpy.tile(BuildList, (numpy.ceil(len(SubjectsList))))
     
 PipelineSubString = None
     
-UsableList = ['fair', 'good', 'excellent', 'usable', 'undetermined']
+UsableList = ['good', 'excellent', 'usable', 'undetermined']
 
 
 
