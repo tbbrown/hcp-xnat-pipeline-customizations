@@ -688,10 +688,19 @@ for h in xrange(0, len(SubjectsList)):
                             Parameters.addUniqueParameter('structural_TE',TE)
                             Parameters.addUniqueParameter('structural_UnwarpDir',unwarpdir)
                             Parameters.addUniqueParameter('structural_Avgrdcmethod',avgrdcmethod)
-                            formattedSpacing='%1.9f' % T1wSampleSpacing
-                            Parameters.addUniqueParameter('structural_T1wSampleSpacing',formattedSpacing)
-                            formattedSpacing='%1.9f' % T2wSampleSpacing
-                            Parameters.addUniqueParameter('structural_T2wSampleSpacing',formattedSpacing)
+
+                            if (T1wSampleSpacing == 'NONE'):
+                                Parameters.addUniqueParameter('structural_T1wSampleSpacing','NONE')
+                            else:
+                                formattedSpacing='%1.9f' % T1wSampleSpacing
+                                Parameters.addUniqueParameter('structural_T1wSampleSpacing',formattedSpacing)
+
+                            if (T2wSampleSpacing == 'NONE'):
+                                Parameters.addUniqueParameter('structural_T2wSampleSpacing','NONE')
+                            else:
+                                formattedSpacing='%1.9f' % T2wSampleSpacing
+                                Parameters.addUniqueParameter('structural_T2wSampleSpacing',formattedSpacing)
+
                             Parameters.addUniqueParameter('structural_T1wTemplate','MNI152_T1_0.7mm.nii.gz')
                             Parameters.addUniqueParameter('structural_T2wTemplate','MNI152_T2_0.7mm.nii.gz')
                             Parameters.addUniqueParameter('structural_T1wTemplateBrain','MNI152_T1_0.7mm_brain.nii.gz')
