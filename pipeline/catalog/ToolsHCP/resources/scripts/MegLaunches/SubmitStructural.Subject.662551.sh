@@ -24,4 +24,4 @@ python ../launchHCP.py \
 -Compute CHPC \
 -LaunchTaskAnalysis 0 \
 -LaunchICAAnalysis 0 \
--Shadow 1,2,3,4,5,6,7,8
+-Shadow 1,3,4,5,6,7,8
