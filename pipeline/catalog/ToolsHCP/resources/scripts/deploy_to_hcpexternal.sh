@@ -21,7 +21,7 @@
 # 
 #   * Timothy B. Brown (tbbrown at wustl dot edu)
 #
-#~ND_END~
+#~ND~END~
 
 DEPLOY_DIRECTORY=/data/hcpdb/home/HCP_PYTHON/db_pipeline_customizations/templates/misc/catalog/ToolsHCP/resources/scripts/
 
