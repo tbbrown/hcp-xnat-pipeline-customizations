@@ -566,7 +566,7 @@
           <value>z</value>
         </argument>
         <argument id="avgrdcmethod">
-          <value>FIELDMAP</value>
+          <value>^/Pipeline/parameters/parameter[name='Avgrdcmethod']/values/unique/text()^</value>
         </argument>
         <argument id="topupconfig">
           <value>NONE</value>
